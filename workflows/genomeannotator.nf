@@ -4,9 +4,15 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+// Modern template approach for parameter validation
+include { paramsSummaryMap       } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_genomeannotator_pipeline'
 
-// Validate input parameters
+def summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+
+// Validate input parameters (preserve genomeannotator logic)
 WorkflowGenomeannotator.initialise(params, log)
 
 def checkPathParamList = [ params.multiqc_config, params.assembly ]
@@ -68,10 +74,10 @@ include { NCRNA } from '../subworkflows/local/ncrna'
 */
 
 //
-// MODULE: Installed directly from nf-core/modules
+// MODULE: Installed directly from nf-core/modules (genomeannotator-specific)
 //
 include { SAMTOOLS_MERGE } from '../modules/local/samtools/merge'
-include { MULTIQC                     } from '../modules/nf-core/modules/multiqc/main'
+include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 include { TRINITY_GENOMEGUIDED } from '../modules/local/trinity/genomeguided'
 include { AUGUSTUS_BAM2HINTS } from '../modules/local/augustus/bam2hints'
@@ -84,6 +90,7 @@ include { AUGUSTUS_STAGECONFIG } from '../modules/local/augustus/stageconfig'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+<<<<<<< HEAD
 // Info required for completion email and summary
 def multiqc_report = []
 
@@ -344,28 +351,55 @@ workflow GENOMEANNOTATOR {
     } 
 
     //
-    // MODULE: Collect all software versions
+    // MODULE: Collect all software versions (modern template approach)
     //
-
-    CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    )
+    softwareVersionsToYAML(ch_versions)
+        .collectFile(
+            storeDir: "${params.outdir}/pipeline_info",
+            name: 'nf_core_'  +  'genomeannotator_software_'  + 'mqc_'  + 'versions.yml',
+            sort: true,
+            newLine: true
+        ).set { ch_collated_versions }
 
     //
-    // MODULE: MultiQC
+    // MODULE: MultiQC (modern template approach with genomeannotator data)
     //
-    workflow_summary    = WorkflowGenomeannotator.paramsSummaryMultiqc(workflow, summary_params)
-    ch_workflow_summary = Channel.value(workflow_summary)
+    ch_multiqc_config        = Channel.fromPath(
+        "$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+    ch_multiqc_custom_config = params.multiqc_config ?
+        Channel.fromPath(params.multiqc_config, checkIfExists: true) :
+        Channel.empty()
+    ch_multiqc_logo          = params.multiqc_logo ?
+        Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
+        Channel.empty()
 
+    ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
+    ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
+        file(params.multiqc_methods_description, checkIfExists: true) :
+        file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+    ch_methods_description = Channel.value(
+        methodsDescriptionText(ch_multiqc_custom_methods_description))
+
+    // Collect all MultiQC inputs including genomeannotator-specific outputs
     ch_multiqc_files = Channel.empty()
-    ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
-    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(
+        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
+    ch_multiqc_files = ch_multiqc_files.mix(
+        ch_methods_description.collectFile(
+            name: 'methods_description_mqc.yaml',
+            sort: true
+        )
+    )
     ch_multiqc_files = ch_multiqc_files.mix(ch_busco_qc.collect().ifEmpty([]))
 
     MULTIQC (
-        ch_multiqc_files.collect()
+        ch_multiqc_files.collect(),
+        ch_multiqc_config.toList(),
+        ch_multiqc_custom_config.toList(),
+        ch_multiqc_logo.toList(),
+        [],
+        []
     )
     multiqc_report = MULTIQC.out.report.toList()
     ch_versions    = ch_versions.mix(MULTIQC.out.versions)
