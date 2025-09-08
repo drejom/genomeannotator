@@ -20,7 +20,6 @@
                     "format": "file-path",
                     "exists": true,
                     "pattern": "^\\S+\\.fn?a(sta)?$",
-                    "schema": "assets/schema_input.json",
                     "description": "Path to the genome assembly.",
                     "help_text": "This is the assembly you wish to annotate.",
                     "fa_icon": "fas fa-file-csv"

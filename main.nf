@@ -39,17 +39,13 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_geno
 //
 workflow NFCORE_GENOMEANNOTATOR {
 
-    take:
-    samplesheet // channel: samplesheet read in from --input
-
     main:
 
     //
     // WORKFLOW: Run pipeline
     //
-    GENOMEANNOTATOR (
-        samplesheet
-    )
+    GENOMEANNOTATOR ()
+    
     emit:
     multiqc_report = GENOMEANNOTATOR.out.multiqc_report // channel: /path/to/multiqc_report.html
 }
@@ -70,15 +66,13 @@ workflow {
         params.validate_params,
         params.monochrome_logs,
         args,
-        params.outdir,
-        params.input
+        params.outdir
     )
 
     //
     // WORKFLOW: Run main workflow
     //
     NFCORE_GENOMEANNOTATOR (
-        PIPELINE_INITIALISATION.out.samplesheet
     )
     //
     // SUBWORKFLOW: Run completion tasks

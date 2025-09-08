@@ -402,6 +402,10 @@ workflow GENOMEANNOTATOR {
     )
     multiqc_report = MULTIQC.out.report.toList()
     ch_versions    = ch_versions.mix(MULTIQC.out.versions)
+    
+    emit:
+    multiqc_report = multiqc_report
+    versions       = ch_versions
 }
 
 /*
