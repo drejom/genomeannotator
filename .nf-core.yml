@@ -1,2 +1,14 @@
+lint:
+  nextflow_config:
+  - params.input
+nf_core_version: 3.3.1
 repository_type: pipeline
-nf_core_version: "2.14.1"
+template:
+  author: Marc P. Hoeppner
+  description: Annotation of metazoan genomes
+  force: false
+  is_nfcore: true
+  name: genomeannotator
+  org: nf-core
+  outdir: .
+  version: 1.0dev
