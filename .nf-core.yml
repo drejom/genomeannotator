@@ -2,4 +2,4 @@ repository_type: pipeline
 
 lint:
     nextflow_config:
-        params.input
+        - params.input
