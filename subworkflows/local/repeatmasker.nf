@@ -16,6 +16,10 @@ workflow REPEATMASKER {
     rm_db
 
     main:
+    // Create channels for asset files
+    ch_my_genome_fa = file("${workflow.projectDir}/assets/repeatmasker/my_genome.fa")
+    ch_repeats_fa = file("${workflow.projectDir}/assets/repeatmasker/repeats.fa")
+    
     FASTASPLITTER(genome,params.npart_size)
     GUNZIP(
        create_meta_channel(rm_db)
@@ -23,7 +27,9 @@ workflow REPEATMASKER {
     REPEATMASKER_STAGELIB(
        rm_lib,
        rm_species,
-       GUNZIP.out.gunzip.map {m,g -> g}
+       GUNZIP.out.gunzip.map {m,g -> g},
+       ch_my_genome_fa,
+       ch_repeats_fa
     )
     REPEATMASKER_REPEATMASK( 
        FASTASPLITTER.out.chunks,

@@ -11,14 +11,14 @@ process REPEATMASKER_STAGELIB {
     path fasta
     val species
     path db
+    path my_genome_fa
+    path repeats_fa
 
     output:
     path "Libraries", emit: library
-
-    path "versions.yml"           , emit: versions
+    path "versions.yml", emit: versions
 
     script:
-    def args = task.ext.args ?: ''
     def options = ""
     if (species) {
        options = "-species $species"
@@ -26,8 +26,8 @@ process REPEATMASKER_STAGELIB {
        options = "-lib $fasta"
     }
     """
-       cp ${baseDir}/assets/repeatmasker/my_genome.fa .
-       cp ${baseDir}/assets/repeatmasker/repeats.fa .
+       cp $my_genome_fa my_genome.fa
+       cp $repeats_fa repeats.fa
        cp -R /usr/local/share/RepeatMasker/Libraries .
        cp $db Libraries/Dfam.h5
        export LIBDIR=\$PWD/Libraries
