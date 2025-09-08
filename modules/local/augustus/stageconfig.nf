@@ -15,11 +15,17 @@ process AUGUSTUS_STAGECONFIG {
     path "versions.yml"           , emit: versions
 
     script:
-    def args = task.ext.args ?: ''
-    
     """
     mkdir -p augustus_config
-    cp -R $augustus_config_dir/* augustus_config/
+    
+    # If augustus_config_dir is just "config", copy from the container's default location
+    if [[ "$augustus_config_dir" == "config" ]]; then
+        # Copy Augustus config from container's default location
+        cp -R /usr/local/config/* augustus_config/
+    else
+        # Use the provided path (either absolute container path or staged directory)
+        cp -R $augustus_config_dir/* augustus_config/
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
