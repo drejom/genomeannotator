@@ -90,7 +90,6 @@ include { AUGUSTUS_STAGECONFIG } from '../modules/local/augustus/stageconfig'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-<<<<<<< HEAD
 // Info required for completion email and summary
 def multiqc_report = []
 

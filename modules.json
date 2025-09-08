@@ -2,23 +2,6 @@
     "name": "nf-core/genomeannotator",
     "homePage": "https://github.com/nf-core/genomeannotator",
     "repos": {
-<<<<<<< HEAD
-        "nf-core/modules": {
-            "cat/fastq": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "custom/dumpsoftwareversions": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "fastqc": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "gunzip": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "multiqc": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-=======
         "https://github.com/nf-core/modules.git": {
             "modules": {
                 "nf-core": {
@@ -52,7 +35,6 @@
                         "installed_by": ["subworkflows"]
                     }
                 }
->>>>>>> TEMPLATE
             }
         }
     }
