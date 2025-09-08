@@ -15,15 +15,21 @@ process AUGUSTUS_STAGECONFIG {
     path "versions.yml"           , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
+    
     """
     mkdir -p augustus_config
     
-    # If augustus_config_dir is just "config", copy from the container's default location
+    # Handle the case where augustus_config_dir is "config" (from Channel.from basename)
     if [[ "$augustus_config_dir" == "config" ]]; then
-        # Copy Augustus config from container's default location
-        cp -R /usr/local/config/* augustus_config/
+        # Copy from container's Augustus config directory
+        for subdir in cgp extrinsic model profile species; do
+            if [[ -d "/usr/local/config/\$subdir" ]]; then
+                cp -r "/usr/local/config/\$subdir" augustus_config/
+            fi
+        done
     else
-        # Use the provided path (either absolute container path or staged directory)
+        # Standard path copy
         cp -R $augustus_config_dir/* augustus_config/
     fi
 
